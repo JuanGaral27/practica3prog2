@@ -1,76 +1,77 @@
 #include <iostream>
-#include <cmath>
-
 using namespace std;
 
-// Estructura para representar un punto en el plano cartesiano
-struct Punto {
-    int x;
-    int y;
-};
-
-// Función para calcular la pendiente entre dos puntos
-float calcularPendiente(const Punto &p1, const Punto &p2) {
-    if (p1.x == p2.x) {
-        // Caso especial: línea vertical
-        throw invalid_argument("Pendiente indefinida (línea vertical).");
+// Función para determinar el cuadrante
+void determinarCuadrante(int x, int y) {
+    if (x > 0 && y > 0) {
+        cout << "La coordenada (" << x << ", " << y << ") se encuentra en el Cuadrante 1." << endl;
+    } else if (x < 0 && y > 0) {
+        cout << "La coordenada (" << x << ", " << y << ") se encuentra en el Cuadrante 2." << endl;
+    } else if (x < 0 && y < 0) {
+        cout << "La coordenada (" << x << ", " << y << ") se encuentra en el Cuadrante 3." << endl;
+    } else if (x > 0 && y < 0) {
+        cout << "La coordenada (" << x << ", " << y << ") se encuentra en el Cuadrante 4." << endl;
+    } else if (x == 0 && y != 0) {
+        cout << "La coordenada (" << x << ", " << y << ") se encuentra en el eje Y." << endl;
+    } else if (x != 0 && y == 0) {
+        cout << "La coordenada (" << x << ", " << y << ") se encuentra en el eje X." << endl;
+    } else {
+        cout << "La coordenada (" << x << ", " << y << ") se encuentra en el origen." << endl;
     }
-    return static_cast<float>(p2.y - p1.y) / (p2.x - p1.x);
 }
 
-// Función para calcular el intercepto (b) usando y = mx + b
-float calcularIntercepto(const Punto &p, float pendiente) {
-    return p.y - pendiente * p.x;
+// Función para determinar si tres puntos se encuentran en la misma línea
+bool estanEnLaMismaLinea(int x1, int y1, int x2, int y2, int x3, int y3) {
+    // Usamos la fórmula de la pendiente (y2 - y1) / (x2 - x1) == (y3 - y1) / (x3 - x1)
+    // Evitamos la división, multiplicamos en cruz
+    return (y2 - y1) * (x3 - x1) == (y3 - y1) * (x2 - x1);
 }
 
-// Función para verificar si un punto pertenece a la misma línea
-bool perteneceALinea(const Punto &p, float pendiente, float intercepto) {
-    return fabs(p.y - (pendiente * p.x + intercepto)) < 1e-5;
+// Función para calcular la ecuación de la recta (y = mx + b)
+void calcularEcuacionRecta(int x1, int y1, int x2, int y2) {
+    if (x1 == x2) { // Caso especial cuando la línea es vertical
+        cout << "La ecuacion de la recta es: x = " << x1 << endl;
+    } else {
+        // Calculamos la pendiente m
+        double m = double(y2 - y1) / (x2 - x1);
+        // Calculamos la intersección con el eje Y (b)
+        double b = y1 - m * x1;
+        
+        cout << "La ecuacion de la recta es: y = " << m << "x + " << b << endl;
+    }
 }
 
 int main() {
-    const int MAX_PUNTOS = 100;
-    Punto puntos[MAX_PUNTOS];
-    int numPuntos;
+    int n;
+    cout << "Introduce el numero de coordenadas: ";
+    cin >> n;
 
-    cout << "Ingrese el número de puntos a evaluar (máximo " << MAX_PUNTOS << "): ";
-    cin >> numPuntos;
+    // Arrays para almacenar las coordenadas
+    int x[n], y[n];
 
-    if (numPuntos < 2) {
-        cout << "Se necesitan al menos 2 puntos para determinar una línea." << endl;
-        return 1;
+    // Leer las coordenadas
+    for (int i = 0; i < n; i++) {
+        cout << "Introduce la coordenada #" << i + 1 << " (x, y): ";
+        cin >> x[i] >> y[i];
+
+        // Determinar en qué cuadrante se encuentra la coordenada
+        determinarCuadrante(x[i], y[i]);
     }
 
-    // Captura de los puntos
-    for (int i = 0; i < numPuntos; ++i) {
-        cout << "Ingrese la coordenada X del punto " << i + 1 << ": ";
-        cin >> puntos[i].x;
-        cout << "Ingrese la coordenada Y del punto " << i + 1 << ": ";
-        cin >> puntos[i].y;
+    // Verificar si las coordenadas se encuentran en la misma línea
+    bool estanEnLinea = true;
+    for (int i = 2; i < n; i++) {
+        if (!estanEnLaMismaLinea(x[0], y[0], x[1], y[1], x[i], y[i])) {
+            estanEnLinea = false;
+            break;
+        }
     }
 
-    try {
-        // Calcular pendiente y intercepto usando los dos primeros puntos
-        float pendiente = calcularPendiente(puntos[0], puntos[1]);
-        float intercepto = calcularIntercepto(puntos[0], pendiente);
-
-        // Verificar si los demás puntos están en la misma línea
-        bool todosEnLinea = true;
-        for (int i = 2; i < numPuntos; ++i) {
-            if (!perteneceALinea(puntos[i], pendiente, intercepto)) {
-                todosEnLinea = false;
-                break;
-            }
-        }
-
-        if (todosEnLinea) {
-            cout << "Todos los puntos están en la misma línea." << endl;
-            cout << "La ecuación de la línea es: y = " << pendiente << "x + " << intercepto << endl;
-        } else {
-            cout << "No todos los puntos están en la misma línea." << endl;
-        }
-    } catch (const invalid_argument &e) {
-        cout << "Error: " << e.what() << endl;
+    if (estanEnLinea) {
+        cout << "Las coordenadas se encuentran en la misma linea." << endl;
+        calcularEcuacionRecta(x[0], y[0], x[1], y[1]);
+    } else {
+        cout << "Las coordenadas no se encuentran en la misma linea." << endl;
     }
 
     return 0;
